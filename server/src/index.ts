@@ -5,7 +5,7 @@ import { UserManager } from "./managers/UserManager";
 import { RoomManager } from "./managers/RoomManager";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });

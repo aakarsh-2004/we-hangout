@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 
 const Room = ({ localAudioTrack, localVideoTrack, name }: {
   localAudioTrack: MediaStreamTrack,
   localVideoTrack: MediaStreamTrack,
   name: string
 }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [_socket, setSocket] = useState<WebSocket | null>(null);
   const [lobby, setLobby] = useState(false);
-  const [sendingPc, setSendingPc] = useState<RTCPeerConnection | null>(null);
-  const [receivingPc, setReceivingPc] = useState<RTCPeerConnection | null>(null);
-  const [remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
-  const [remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
-  const [remoteMediaStream, setRemoteMediaStream] = useState<MediaStream | null>(null);
+  const [_sendingPc, setSendingPc] = useState<RTCPeerConnection | null>(null);
+  const [_receivingPc, setReceivingPc] = useState<RTCPeerConnection | null>(null);
+  const [_remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
+  const [_remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
+  const [_remoteMediaStream, setRemoteMediaStream] = useState<MediaStream | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 

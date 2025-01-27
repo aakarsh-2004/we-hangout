@@ -1,20 +1,47 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react"
+import Room from "./Room";
 
 const Dashboard = () => {
   const [name, setName] = useState("");
-  const navigate = useNavigate();
+  const [joined, setJoined] = useState(false);
+  const [localAudioTrack, setLocalAudioTrack] = useState<MediaStreamTrack | null>(null);
+  const [localVideoTrack, setLocalVideoTrack] = useState<MediaStreamTrack | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const joinRoom = () => {
-    navigate(`/room?name=${name}`);
+  const getCam = async () => {
+    const stream = await window.navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+    const videoTrack = stream.getVideoTracks()[0];
+    const audioTrack = stream.getAudioTracks()[0];
+    setLocalAudioTrack(audioTrack);
+    setLocalVideoTrack(videoTrack);
+    if(!videoRef.current) {
+      return;
+    }
+    videoRef.current.srcObject = new MediaStream([videoTrack]);
+    videoRef.current.play();
   }
 
-  return (
-    <div>
-      <input type="text" placeholder="name" onChange={(e) => setName(e.target.value)} value={name} />
-      <button onClick={joinRoom}>join</button>
-    </div>
-  )
+  useEffect(() => {
+    if(videoRef && videoRef.current) {
+      getCam();
+    }
+  }, [videoRef]);
+
+
+  if(!joined) {  
+      return (
+        <div>
+        <video ref={videoRef} autoPlay></video>
+        <input type="text" placeholder="name" onChange={(e) => setName(e.target.value)} value={name} />
+        <button onClick={() => setJoined(true)}>join</button>
+      </div>
+    )
+  } 
+  
+  return <Room localAudioTrack={localAudioTrack} localVideoTrack={localVideoTrack} name={name} />
 }
 
 export default Dashboard

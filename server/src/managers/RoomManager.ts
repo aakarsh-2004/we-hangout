@@ -23,8 +23,8 @@ export class RoomManager {
     }
 
     createRoom(userOne: User, userTwo: User) {
-        const roomId = this.generate();
-        this.rooms.set(roomId.toString(), {
+        const roomId = this.generate().toString();
+        this.rooms.set(roomId, {
             userOne,
             userTwo
         });
@@ -45,6 +45,9 @@ export class RoomManager {
             return;
         }
         const receivingUser = room.userOne.socket === senderSocket ? room.userTwo: room.userOne;
+        
+        console.log("offer sent successfully to the receiver " + receivingUser.name);
+        
         receivingUser?.socket.send(JSON.stringify({
             type: "OFFER",
             sdp,
@@ -58,6 +61,9 @@ export class RoomManager {
             return;
         }
         const receivingUser = room.userOne.socket === senderSocket ? room.userTwo: room.userOne;
+
+        console.log("answer sent successfully to the sender " + receivingUser.name);
+
         receivingUser?.socket.send(JSON.stringify({
             type: "ANSWER",
             sdp,
@@ -71,7 +77,7 @@ export class RoomManager {
 
         const receivingUser = room.userOne.socket === senderSocket ? room.userTwo : room.userOne;
         receivingUser?.socket.send(JSON.stringify({
-            type: "ICE_CANDIDATE",
+            type: "ADD_ICE_CANDIDATE",
             candidate,
             roomId
         }));

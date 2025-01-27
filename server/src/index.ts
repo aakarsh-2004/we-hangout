@@ -16,9 +16,11 @@ const roomManager = RoomManager.getInstance();
 wss.on('connection', (ws: WebSocket) => {
     console.log('New WebSocket connection');
 
+    ws.on('message', (data) => {
+        console.log("init data", data.toString());
+    })
+
     userManager.addUser(`User_${Date.now()}`, ws);
-    
-    userManager.initHandlers(ws);
 });
 
 app.get('/', (req, res) => {

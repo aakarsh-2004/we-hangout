@@ -29,7 +29,14 @@ export class UserManager {
     this.users.push(user);
     this.usersQueue.push(user);
 
+    console.log("users len", this.users.length);
+    console.log("users queue length", this.usersQueue.length);
+    socket.send(JSON.stringify({
+      type: "LOBBY"
+    }));
+
     this.clearQueue();
+    this.initHandlers(socket);
   }
 
   public removeUser(socket: WebSocket) {
@@ -59,24 +66,32 @@ export class UserManager {
 
         switch (parsedData.type) {
           case "OFFER":
-            this.roomManager.onOffer(parsedData.roomId, parsedData.sdp, socket);
-            break;
-          case "ANSWER":
-            this.roomManager.onAnswer(
-              parsedData.roomId,
+            console.log("offer received");
+            
+            this.roomManager.onOffer(
+              parsedData.roomId.toString(),
               parsedData.sdp,
               socket
             );
             break;
-          case "ICE_CANDIDATE":
+          case "ANSWER":
+            console.log("answer received");
+
+            this.roomManager.onAnswer(
+              parsedData.roomId.toString(),
+              parsedData.sdp,
+              socket
+            );
+            break;
+          case "ADD_ICE_CANDIDATE":
             this.roomManager.onIceCandidate(
-              parsedData.roomId,
+              parsedData.roomId.toString(),
               parsedData.candidate,
               socket
             );
             break;
           default:
-            throw new Error("Unknown message type");
+            console.log("Unknown message type", parsedData.type);
         }
       } catch (error) {
         console.error("Message processing error:", error);

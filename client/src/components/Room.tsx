@@ -14,8 +14,8 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   const [remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
   const [remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
   const [remoteMediaStream, setRemoteMediaStream] = useState<MediaStream | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>();
-  const localVideoRef = useRef<HTMLVideoElement>();
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:3000");
@@ -97,7 +97,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
         pc.setLocalDescription(sdp);
 
-        pc.ontrack = ({ track, type }) => {
+        pc.ontrack = () => {
           alert("on track");
           // if (type == 'audio') {
           //   setRemoteAudioTrack(track);
@@ -145,7 +145,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
             setRemoteVideoTrack(track2)
           }
 
-          if(remoteVideoRef.current && remoteVideoRef.current.srcObject) {
+          if(remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
             remoteVideoRef.current.srcObject.addTrack(track1)
             remoteVideoRef.current.srcObject.addTrack(track2)
             remoteVideoRef.current.play();

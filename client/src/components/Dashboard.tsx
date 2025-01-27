@@ -41,7 +41,9 @@ const Dashboard = () => {
     )
   } 
   
-  return <Room localAudioTrack={localAudioTrack} localVideoTrack={localVideoTrack} name={name} />
+  if(localAudioTrack && localVideoTrack) {
+    return <Room localAudioTrack={localAudioTrack} localVideoTrack={localVideoTrack} name={name} />
+  }
 }
 
 export default Dashboard

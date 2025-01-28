@@ -34,19 +34,19 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
       if (message.type == "SEND_OFFER") {
         setLobby(false);
-        alert("send offer please");
+        // alert("send offer please");
 
         const pc = new RTCPeerConnection();
         setSendingPc(pc);
 
         if (localVideoTrack) {
           console.error("added track");
-          console.log(localVideoTrack);
+          console.log("localvideotrack", localVideoTrack);
           pc.addTrack(localVideoTrack);
         }
         if (localAudioTrack) {
           console.error("added track");
-          console.log(localAudioTrack);
+          console.log("localaudiotrack", localAudioTrack);
           pc.addTrack(localAudioTrack);
         }
 
@@ -79,38 +79,38 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
       } else if (message.type == "OFFER") {
         setLobby(false);
-        alert("send answer please");
+        // alert("send answer please");
         console.log("received offer");
-
+        
         const pc = new RTCPeerConnection();
         setReceivingPc(pc);
-
-        pc.setRemoteDescription(message.sdp);
-        const sdp = await pc.createAnswer();
-
         const stream = new MediaStream();
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = stream;
         }
         setRemoteMediaStream(stream);
 
-        pc.setLocalDescription(sdp);
+        pc.ontrack = (event) => {
+          console.log("remoteVideoRef", remoteVideoRef.current?.srcObject);
+          
+          console.log("inside on track");
+          const track = event.track;
 
-        pc.ontrack = () => {
-          alert("on track");
-          // if (type == 'audio') {
-          //   setRemoteAudioTrack(track);
-          //   if (remoteVideoRef.current) {
-          //     remoteVideoRef.current.srcObject.addTrack(track)
-          //   }
-          // } else {
-          //   setRemoteVideoTrack(track);
-          //   if (remoteVideoRef.current) {
-          //     remoteVideoRef.current.srcObject.addTrack(track)
-          //   }
-          // }
-          // remoteVideoRef.current?.play();
+          console.log("remote track", track);
+          
+          if (track.kind === "video" && remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
+            setRemoteVideoTrack(track);
+            remoteVideoRef.current.srcObject.addTrack(event.track);
+          } else if (track.kind === "audio" && remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
+            setRemoteAudioTrack(track);
+            remoteVideoRef.current.srcObject.addTrack(event.track)
+          }
         }
+        
+        pc.setRemoteDescription(message.sdp);
+        const sdp = await pc.createAnswer();
+
+        pc.setLocalDescription(sdp);
 
         pc.onicecandidate = async (e) => {
           console.log("on ice candidate on receiving side");
@@ -132,27 +132,9 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
           })
         );
 
-        setTimeout(() => {
-          const track1 = pc.getTransceivers()[0].receiver.track
-          const track2 = pc.getTransceivers()[1].receiver.track
-          console.log(track1);
-          if (track1.kind === "video") {
-            setRemoteAudioTrack(track2)
-            setRemoteVideoTrack(track1)
-          } else {
-            setRemoteAudioTrack(track1)
-            setRemoteVideoTrack(track2)
-          }
-
-          if(remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
-            remoteVideoRef.current.srcObject.addTrack(track1)
-            remoteVideoRef.current.srcObject.addTrack(track2)
-            remoteVideoRef.current.play();
-          }
-        }, 5000)
       } else if (message.type == "ANSWER") {
         setLobby(false);
-        alert("Connection done");
+        // alert("Connection done");
 
         setSendingPc(pc => {
           pc?.setRemoteDescription(message.sdp);
@@ -182,7 +164,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   useEffect(() => {
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = new MediaStream([localVideoTrack]);
-      localVideoRef.current.play();
+      // localVideoRef.current.play();
     }
   }, [localVideoRef])
 

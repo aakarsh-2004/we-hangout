@@ -185,10 +185,21 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
       } else if (message.type == "ANSWER") {
         setLobby(false);
 
+        const handleAnswer = async (pc: RTCPeerConnection) => {
+          try {
+            await pc.setRemoteDescription(message.sdp);
+            console.log("Remote description set successfully for sender");
+          } catch (err) {
+            console.error("Error setting remote description:", err);
+          }
+        };
+
         setSendingPc(pc => {
-          pc?.setRemoteDescription(message.sdp);
+          if (pc) {
+            handleAnswer(pc);
+          }
           return pc;
-        })
+        });
       } else if (message.type == "LOBBY") {
         setLobby(true);
       } else if (message.type == "ADD_ICE_CANDIDATE") {

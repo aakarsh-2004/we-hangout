@@ -13,7 +13,6 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   const [_remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
   const [_remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
   const [_remoteMediaStream, setRemoteMediaStream] = useState<MediaStream | null>(null);
-  const [iceCandidateQueue, setIceCandidateQueue] = useState<RTCIceCandidate[]>([]);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -78,7 +77,6 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
           }
         }
 
-
         pc.onnegotiationneeded = async () => {
           console.log("on negotiation neeeded, sending offer");
           const sdp = await pc.createOffer();
@@ -96,7 +94,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         setLobby(false);
         // alert("send answer please");
         console.log("received offer");
-
+        
         const pc = createPeerConnection();
         setReceivingPc(pc);
         const stream = new MediaStream();
@@ -107,12 +105,12 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
         pc.ontrack = (event) => {
           console.log("remoteVideoRef", remoteVideoRef.current?.srcObject);
-
+          
           console.log("inside on track");
           const track = event.track;
 
           console.log("remote track", track);
-
+          
           if (track.kind === "video" && remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
             setRemoteVideoTrack(track);
             remoteVideoRef.current.srcObject.addTrack(event.track);
@@ -121,13 +119,8 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
             remoteVideoRef.current.srcObject.addTrack(event.track)
           }
         }
-
+        
         pc.setRemoteDescription(message.sdp);
-
-        iceCandidateQueue.forEach(candidate => {
-          pc.addIceCandidate(candidate);
-        });
-        setIceCandidateQueue([]);
         const sdp = await pc.createAnswer();
 
         pc.setLocalDescription(sdp);
@@ -158,10 +151,6 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
         setSendingPc(pc => {
           pc?.setRemoteDescription(message.sdp);
-          iceCandidateQueue.forEach(candidate => {
-            pc?.addIceCandidate(candidate);
-          });
-          setIceCandidateQueue([]);
           return pc;
         })
       } else if (message.type == "LOBBY") {
@@ -170,20 +159,12 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         console.log("add ice candidate from remote");
         if (message.by == "sender") {
           setReceivingPc(pc => {
-            if (pc?.remoteDescription) {
-              pc.addIceCandidate(message.candidate);
-            } else {
-              setIceCandidateQueue(queue => [...queue, message.candidate]);
-            }
+            pc?.addIceCandidate(message.candidate);
             return pc;
           })
         } else {
           setSendingPc(pc => {
-            if (pc?.remoteDescription) {
-              pc.addIceCandidate(message.candidate);
-            } else {
-              setIceCandidateQueue(queue => [...queue, message.candidate]);
-            }
+            pc?.addIceCandidate(message.candidate);
             return pc;
           })
         }

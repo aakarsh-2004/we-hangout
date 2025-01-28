@@ -104,21 +104,30 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         setRemoteMediaStream(stream);
 
         pc.ontrack = (event) => {
-          console.log("remoteVideoRef", remoteVideoRef.current?.srcObject);
-          
-          console.log("inside on track");
-          const track = event.track;
-
-          console.log("remote track", track);
-          
-          if (track.kind === "video" && remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
-            setRemoteVideoTrack(track);
-            remoteVideoRef.current.srcObject.addTrack(event.track);
-          } else if (track.kind === "audio" && remoteVideoRef.current && remoteVideoRef.current.srcObject instanceof MediaStream) {
-            setRemoteAudioTrack(track);
-            remoteVideoRef.current.srcObject.addTrack(event.track)
+          console.log("Track received: ", event.track);
+        
+          if (remoteVideoRef.current) {
+            let stream = remoteVideoRef.current.srcObject;
+        
+            // Ensure the srcObject is initialized as a MediaStream
+            if (!(stream instanceof MediaStream)) {
+              stream = new MediaStream();
+              remoteVideoRef.current.srcObject = stream;
+            }
+        
+            // Add the incoming track to the MediaStream
+            stream.addTrack(event.track);
+        
+            if (event.track.kind === "video") {
+              console.log("Remote video track added.");
+              setRemoteVideoTrack(event.track);
+            } else if (event.track.kind === "audio") {
+              console.log("Remote audio track added.");
+              setRemoteAudioTrack(event.track);
+            }
           }
-        }
+        };
+        
         
         pc.setRemoteDescription(message.sdp);
         const sdp = await pc.createAnswer();

@@ -16,6 +16,19 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  const createPeerConnection = () => {
+    return new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: [
+            "stun:stun.l.google.com:19302",
+            "stun:stun1.l.google.com:19302",
+          ],
+        },
+      ],
+    });
+  };
+
   useEffect(() => {
     const socket = new WebSocket(config.BACKEND_URL);
     setSocket(socket);
@@ -36,7 +49,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         setLobby(false);
         // alert("send offer please");
 
-        const pc = new RTCPeerConnection();
+        const pc = createPeerConnection();
         setSendingPc(pc);
 
         if (localVideoTrack) {
@@ -82,7 +95,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         // alert("send answer please");
         console.log("received offer");
         
-        const pc = new RTCPeerConnection();
+        const pc = createPeerConnection();
         setReceivingPc(pc);
         const stream = new MediaStream();
         if (remoteVideoRef.current) {
@@ -171,9 +184,9 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   return (
     <div>
       Hi {name}
-      <video width={400} height={400} ref={localVideoRef} autoPlay></video>
+      <video width={400} height={400} ref={localVideoRef} autoPlay playsInline></video>
       {lobby ? "waiting to connect you to someone" : ""}
-      <video width={400} height={400} ref={remoteVideoRef} autoPlay></video>
+      <video width={400} height={400} ref={remoteVideoRef} autoPlay playsInline></video>
     </div>
   );
 };

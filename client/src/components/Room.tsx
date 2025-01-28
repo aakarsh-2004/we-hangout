@@ -8,7 +8,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 }) => {
   const [_socket, setSocket] = useState<WebSocket | null>(null);
   const [lobby, setLobby] = useState(false);
-  const [_sendingPc, setSendingPc] = useState<RTCPeerConnection | null>(null);
+  const [sendingPc, setSendingPc] = useState<RTCPeerConnection | null>(null);
   const [_receivingPc, setReceivingPc] = useState<RTCPeerConnection | null>(null);
   const [_remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
   const [_remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
@@ -129,7 +129,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         };
         
         
-        pc.setRemoteDescription(message.sdp);
+        await pc.setRemoteDescription(message.sdp);
         const sdp = await pc.createAnswer();
 
         pc.setLocalDescription(sdp);
@@ -156,8 +156,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
       } else if (message.type == "ANSWER") {
         setLobby(false);
-        // alert("Connection done");
-
+        
         setSendingPc(pc => {
           pc?.setRemoteDescription(message.sdp);
           return pc;

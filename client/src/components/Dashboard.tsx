@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react"
 import Room from "./Room";
+import { config } from "../configs/config";
 
 const Dashboard = () => {
   const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
   const [localAudioTrack, setLocalAudioTrack] = useState<MediaStreamTrack | null>(null);
   const [localVideoTrack, setLocalVideoTrack] = useState<MediaStreamTrack | null>(null);
+
+  console.log("BE url", config.BACKEND_URL);
+  
+  
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const getCam = async () => {

@@ -25,9 +25,20 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
             "stun:stun1.l.google.com:19302",
           ],
         },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
       ],
     });
   };
+  
 
   useEffect(() => {
     const socket = new WebSocket(config.BACKEND_URL);

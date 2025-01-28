@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { config } from "../configs/config";
 
 const Room = ({ localAudioTrack, localVideoTrack, name }: {
   localAudioTrack: MediaStreamTrack,
@@ -16,7 +17,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:3000");
+    const socket = new WebSocket(config.BACKEND_URL);
     setSocket(socket);
 
     socket.onopen = () => {

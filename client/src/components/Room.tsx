@@ -51,6 +51,34 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
         const pc = createPeerConnection();
         setSendingPc(pc);
+        const stream = new MediaStream();
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+        }
+        setRemoteMediaStream(stream);
+
+        pc.ontrack = (event) => {
+          console.log("Track received: ", event.track);
+
+          if (remoteVideoRef.current) {
+            let stream = remoteVideoRef.current.srcObject;
+
+            if (!(stream instanceof MediaStream)) {
+              stream = new MediaStream();
+              remoteVideoRef.current.srcObject = stream;
+            }
+
+            stream.addTrack(event.track);
+
+            if (event.track.kind === "video") {
+              console.log("Remote video track added.");
+              setRemoteVideoTrack(event.track);
+            } else if (event.track.kind === "audio") {
+              console.log("Remote audio track added.");
+              setRemoteAudioTrack(event.track);
+            }
+          }
+        };
 
         if (localVideoTrack) {
           console.error("added track");
@@ -94,7 +122,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         setLobby(false);
         // alert("send answer please");
         console.log("received offer");
-        
+
         const pc = createPeerConnection();
         setReceivingPc(pc);
         const stream = new MediaStream();
@@ -105,19 +133,19 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
         pc.ontrack = (event) => {
           console.log("Track received: ", event.track);
-        
+
           if (remoteVideoRef.current) {
             let stream = remoteVideoRef.current.srcObject;
-        
+
             // Ensure the srcObject is initialized as a MediaStream
             if (!(stream instanceof MediaStream)) {
               stream = new MediaStream();
               remoteVideoRef.current.srcObject = stream;
             }
-        
+
             // Add the incoming track to the MediaStream
             stream.addTrack(event.track);
-        
+
             if (event.track.kind === "video") {
               console.log("Remote video track added.");
               setRemoteVideoTrack(event.track);
@@ -127,8 +155,8 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
             }
           }
         };
-        
-        
+
+
         await pc.setRemoteDescription(message.sdp);
         const sdp = await pc.createAnswer();
 
@@ -156,7 +184,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
       } else if (message.type == "ANSWER") {
         setLobby(false);
-        
+
         setSendingPc(pc => {
           pc?.setRemoteDescription(message.sdp);
           return pc;

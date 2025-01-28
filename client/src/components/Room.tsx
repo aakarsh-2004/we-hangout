@@ -13,6 +13,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
   const [_remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
   const [_remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
   const [_remoteMediaStream, setRemoteMediaStream] = useState<MediaStream | null>(null);
+  const candidateQueue: RTCIceCandidate[] = [];
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -38,7 +39,14 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
       ],
     });
   };
-  
+
+  const processCandidateQueue = (pc: RTCPeerConnection) => {
+    while (candidateQueue.length > 0) {
+      const candidate = candidateQueue.shift();
+      pc.addIceCandidate(candidate);
+    }
+  };
+
 
   useEffect(() => {
     const socket = new WebSocket(config.BACKEND_URL);
@@ -169,6 +177,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
 
 
         await pc.setRemoteDescription(message.sdp);
+        processCandidateQueue(pc);
         const sdp = await pc.createAnswer();
 
         pc.setLocalDescription(sdp);
@@ -199,6 +208,7 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         const handleAnswer = async (pc: RTCPeerConnection) => {
           try {
             await pc.setRemoteDescription(message.sdp);
+            processCandidateQueue(pc);
             console.log("Remote description set successfully for sender");
           } catch (err) {
             console.error("Error setting remote description:", err);
@@ -215,16 +225,25 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
         setLobby(true);
       } else if (message.type == "ADD_ICE_CANDIDATE") {
         console.log("add ice candidate from remote");
-        if (message.by == "sender") {
-          setReceivingPc(pc => {
-            pc?.addIceCandidate(message.candidate);
+
+        if (message.by === "sender") {
+          setReceivingPc((pc) => {
+            if (pc?.remoteDescription) {
+              pc.addIceCandidate(message.candidate);
+            } else {
+              candidateQueue.push(message.candidate);
+            }
             return pc;
-          })
+          });
         } else {
-          setSendingPc(pc => {
-            pc?.addIceCandidate(message.candidate);
+          setSendingPc((pc) => {
+            if (pc?.remoteDescription) {
+              pc.addIceCandidate(message.candidate);
+            } else {
+              candidateQueue.push(message.candidate);
+            }
             return pc;
-          })
+          });
         }
       } else {
         console.log("Action not specified", message);

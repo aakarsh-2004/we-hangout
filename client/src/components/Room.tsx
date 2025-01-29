@@ -175,6 +175,13 @@ const Room = ({ localAudioTrack, localVideoTrack, name }: {
           }
         };
 
+        if (localVideoTrack) {
+          pc.addTrack(localVideoTrack);
+        }
+        if (localAudioTrack) {
+          pc.addTrack(localAudioTrack);
+        }
+
 
         await pc.setRemoteDescription(message.sdp);
         processCandidateQueue(pc);

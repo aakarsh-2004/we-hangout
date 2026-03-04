@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#fdf6ef"/>
+
+  <!-- Left person -->
+  <circle cx="10" cy="12" r="3" fill="#c9633a"/>
+  <path d="M4 22c0-3.314 2.686-6 6-6s6 2.686 6 6" fill="#c9633a"/>
+
+  <!-- Right person -->
+  <circle cx="22" cy="12" r="3" fill="#c9633a" opacity="0.6"/>
+  <path d="M16 22c0-3.314 2.686-6 6-6s6 2.686 6 6" fill="#c9633a" opacity="0.6"/>
+
+  <!-- Connection dot in centre -->
+  <circle cx="16" cy="16" r="2" fill="#c9633a"/>
+</svg>

@@ -29,45 +29,47 @@ export class UserManager {
     this.users.push(user);
     this.usersQueue.push(user);
 
-    console.log("users len", this.users.length);
-    console.log("users queue length", this.usersQueue.length);
-    socket.send(JSON.stringify({
-      type: "LOBBY"
-    }));
+    socket.send(JSON.stringify({ type: "LOBBY" }));
 
     this.clearQueue();
     this.initHandlers(socket);
   }
 
   public removeUser(socket: WebSocket) {
-    this.users = this.users.filter((user) => user.socket !== socket);
-    this.usersQueue = this.usersQueue.filter((user) => user.socket !== socket);
+    this.users = this.users.filter((u) => u.socket !== socket);
+    this.usersQueue = this.usersQueue.filter((u) => u.socket !== socket);
   }
+
   clearQueue() {
-    while (this.usersQueue.length >= 2) {
-      const userOne = this.usersQueue.shift();
-      const userTwo = this.usersQueue.shift();
-      if (userOne && userTwo) {
-        this.roomManager.createRoom(userOne, userTwo);
-        break;
-      }
+    if (this.usersQueue.length >= 2) {
+      const userOne = this.usersQueue.shift()!;
+      const userTwo = this.usersQueue.shift()!;
+      this.roomManager.createRoom(userOne, userTwo);
     }
   }
 
   initHandlers(socket: WebSocket) {
     socket.on("close", () => {
+      // Notify the partner and clean up the room
+      this.roomManager.notifyPeerLeft(socket);
       this.removeUser(socket);
+      console.log("user disconnected");
     });
 
     socket.on("message", (data) => {
       try {
         const parsedData = JSON.parse(data.toString());
-        console.log(parsedData);
 
         switch (parsedData.type) {
+          case "SET_NAME": {
+            const user = this.users.find((u) => u.socket === socket);
+            if (user && parsedData.name) {
+              user.name = parsedData.name;
+              console.log(`User name set to: ${user.name}`);
+            }
+            break;
+          }
           case "OFFER":
-            console.log("offer received");
-            
             this.roomManager.onOffer(
               parsedData.roomId.toString(),
               parsedData.sdp,
@@ -75,8 +77,6 @@ export class UserManager {
             );
             break;
           case "ANSWER":
-            console.log("answer received");
-
             this.roomManager.onAnswer(
               parsedData.roomId.toString(),
               parsedData.sdp,
@@ -87,20 +87,16 @@ export class UserManager {
             this.roomManager.onIceCandidate(
               parsedData.roomId.toString(),
               parsedData.candidate,
-              socket
+              socket,
+              parsedData.by
             );
             break;
           default:
-            console.log("Unknown message type", parsedData.type);
+            console.log("Unknown message type:", parsedData.type);
         }
       } catch (error) {
         console.error("Message processing error:", error);
-        socket.send(
-          JSON.stringify({
-            type: "ERROR",
-            message: "Invalid message format",
-          })
-        );
+        socket.send(JSON.stringify({ type: "ERROR", message: "Invalid message format" }));
       }
     });
   }
